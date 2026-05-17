@@ -1,98 +1,287 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🚀 ChambaApp Backend v2
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend REST + WebSocket para ChambaApp.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Stack principal:
 
-## Description
+- 🧱 NestJS
+- 🗃️ PostgreSQL con Docker
+- 🔷 Prisma ORM
+- 🍃 MongoDB Atlas con Mongoose
+- 🔐 JWT + Passport JWT
+- 💬 Socket.IO para chat
+- ✅ TypeScript + ESLint
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 📦 Requisitos
 
-## Project setup
+Antes de levantar el backend asegúrate de tener instalado:
+
+- 🟢 Node.js
+- 📦 npm
+- 🐳 Docker Desktop
+- 🍃 Cuenta/cluster de MongoDB Atlas
+
+## ⚙️ Instalar dependencias
 
 ```bash
-$ npm install
+npm install
 ```
 
-## Compile and run the project
+## 🐳 Levantar PostgreSQL con Docker
+
+Este proyecto usa PostgreSQL desde `docker-compose.yml`.
+
+Levanta el contenedor:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+docker compose up -d
 ```
 
-## Run tests
+Verifica que esté corriendo:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker ps
 ```
 
-## Deployment
+Deberías ver un contenedor llamado:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+```txt
+chamba_postgres
+```
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Datos del PostgreSQL local:
+
+```txt
+Host: localhost
+Puerto: 5432
+Usuario: chamba
+Password: chamba123
+Base de datos: chambaapp_db
+```
+
+## 🔐 Variables de entorno
+
+Crea tu archivo `.env` en la raíz del proyecto.
+
+Puedes usar como base:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+cp .env.example .env
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Ejemplo:
 
-## Resources
+```env
+DATABASE_URL="postgresql://chamba:chamba123@localhost:5432/chambaapp_db?schema=public"
+JWT_SECRET="cambia_este_secreto"
+MONGODB_URI="mongodb+srv://usuario:password@cluster.mongodb.net/chambaapp?retryWrites=true&w=majority"
+MONGO_URI="mongodb+srv://usuario:password@cluster.mongodb.net/chambaapp?retryWrites=true&w=majority"
+PORT=3000
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+Notas:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- `DATABASE_URL` apunta a PostgreSQL en Docker.
+- `JWT_SECRET` firma los tokens de login.
+- `MONGODB_URI` o `MONGO_URI` conecta con MongoDB Atlas.
+- Si Atlas rechaza la conexión, agrega tu IP en **Network Access**.
 
-## Support
+## 🔷 Preparar Prisma
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Genera el cliente de Prisma:
 
-## Stay in touch
+```bash
+npx prisma generate
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Ejecuta migraciones:
 
-## License
+```bash
+npx prisma migrate dev
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Si necesitas abrir Prisma Studio:
+
+```bash
+npx prisma studio
+```
+
+## 🌱 Cargar seeds
+
+Ejecuta:
+
+```bash
+npm run seed
+```
+
+Esto crea roles y usuarios demo.
+
+Usuarios para probar:
+
+```txt
+admin@chambaapp.com / Password123
+cliente@chambaapp.com / Password123
+prestador@chambaapp.com / Password123
+```
+
+Roles:
+
+```txt
+admin
+cliente
+prestador
+```
+
+## ▶️ Levantar el backend
+
+Modo desarrollo:
+
+```bash
+npm run start:dev
+```
+
+URL base:
+
+```txt
+http://localhost:3000/api
+```
+
+WebSocket chat:
+
+```txt
+http://localhost:3000/chat
+```
+
+## 🧪 Probar login
+
+Endpoint:
+
+```txt
+POST http://localhost:3000/api/auth/login
+```
+
+Body:
+
+```json
+{
+  "correo": "cliente@chambaapp.com",
+  "password": "Password123"
+}
+```
+
+Copia el `access_token` y úsalo en rutas protegidas:
+
+```txt
+Authorization: Bearer TU_TOKEN
+```
+
+## 💬 Probar chat WebSocket
+
+Existe una carpeta local ignorada por Git:
+
+```txt
+PRUEBA_CHAT/
+```
+
+Abre este archivo en el navegador:
+
+```txt
+PRUEBA_CHAT/index.html
+```
+
+Flujo:
+
+1. 🔐 Pega token de cliente y prestador.
+2. 🧭 Define una sala, por ejemplo `solicitud-1`.
+3. 🔌 Presiona `Conectar`.
+4. 💬 Envía mensaje como cliente.
+5. ↩️ Responde como prestador.
+6. 🔄 Recarga y vuelve a conectar para validar historial.
+
+## 📚 Documentación de endpoints
+
+Documento para frontend/UI:
+
+```txt
+DOCUMENTACION_CONSUMO_API.md
+```
+
+Incluye:
+
+- 🔐 Auth
+- 👤 Usuarios
+- 🛠️ Servicios
+- 📋 Solicitudes
+- 💳 Pagos
+- ⭐ Calificaciones
+- 🔔 Notificaciones
+- 💬 Chats REST + WebSocket
+- 🧾 Logs
+- 🎨 Notas para UI/UX
+
+## 🧹 Comandos útiles
+
+Formatear:
+
+```bash
+npm run format
+```
+
+Lint:
+
+```bash
+npm run lint
+```
+
+Build:
+
+```bash
+npm run build
+```
+
+Tests:
+
+```bash
+npm test
+```
+
+Tests en modo serial:
+
+```bash
+npm test -- --runInBand
+```
+
+## 🛑 Apagar servicios
+
+Detener PostgreSQL:
+
+```bash
+docker compose down
+```
+
+Detener y borrar volumen de PostgreSQL:
+
+```bash
+docker compose down -v
+```
+
+⚠️ Cuidado: `docker compose down -v` elimina los datos locales de PostgreSQL.
+
+## 🧭 Orden recomendado para levantar desde cero
+
+```bash
+npm install
+docker compose up -d
+cp .env.example .env
+npx prisma generate
+npx prisma migrate dev
+npm run seed
+npm run start:dev
+```
+
+Después abre:
+
+```txt
+http://localhost:3000/api
+```
+
