@@ -9,6 +9,7 @@ export declare class AuthController {
         user: {
             nombre: string;
             correo: string;
+            rol: string;
             telefono: string;
         };
     }>;
@@ -17,6 +18,7 @@ export declare class AuthController {
         user: {
             nombre: string;
             correo: string;
+            rol: string;
             telefono: string;
         };
     }>;

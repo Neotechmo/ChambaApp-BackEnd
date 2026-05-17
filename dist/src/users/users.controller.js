@@ -15,24 +15,92 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
+const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const create_user_dto_1 = require("./dto/create-user.dto");
+const update_user_dto_1 = require("./dto/update-user.dto");
+const users_service_1 = require("./users.service");
 let UsersController = class UsersController {
-    getProfile(req) {
-        return {
-            message: 'Ruta protegida',
-            user: req.user,
-        };
+    usersService;
+    constructor(usersService) {
+        this.usersService = usersService;
+    }
+    getProfile(user) {
+        return this.usersService.findOne(user.userId);
+    }
+    create(data) {
+        return this.usersService.create(data);
+    }
+    findAll() {
+        return this.usersService.findAll();
+    }
+    findOne(id) {
+        return this.usersService.findOne(id);
+    }
+    update(id, data, user) {
+        return this.usersService.update(id, data, user.userId, user.rol_id);
+    }
+    remove(id) {
+        return this.usersService.remove(id);
     }
 };
 exports.UsersController = UsersController;
 __decorate([
     (0, common_1.Get)('profile'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.Post)(),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)(),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, update_user_dto_1.UpdateUserDto, Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "remove", null);
 exports.UsersController = UsersController = __decorate([
-    (0, common_1.Controller)('users')
+    (0, common_1.Controller)('users'),
+    __metadata("design:paramtypes", [users_service_1.UsersService])
 ], UsersController);
 //# sourceMappingURL=users.controller.js.map

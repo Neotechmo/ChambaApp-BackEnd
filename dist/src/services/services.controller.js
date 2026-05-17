@@ -15,26 +15,40 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServicesController = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
+const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const roles_guard_1 = require("../auth/guards/roles.guard");
 const services_service_1 = require("./services.service");
 const create_service_dto_1 = require("./dto/create-service.dto");
+const update_service_dto_1 = require("./dto/update-service.dto");
 let ServicesController = class ServicesController {
     servicesService;
     constructor(servicesService) {
         this.servicesService = servicesService;
     }
-    create(data, req) {
-        return this.servicesService.create(data, req.user.userId);
+    create(data, user) {
+        return this.servicesService.create(data, user.userId);
     }
     findAll() {
         return this.servicesService.findAll();
+    }
+    findOne(id) {
+        return this.servicesService.findOne(id);
+    }
+    update(id, data, user) {
+        return this.servicesService.update(id, data, user.userId, user.rol_id);
+    }
+    remove(id, user) {
+        return this.servicesService.remove(id, user.userId, user.rol_id);
     }
 };
 exports.ServicesController = ServicesController;
 __decorate([
     (0, common_1.Post)(),
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'prestador'),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Req)()),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_service_dto_1.CreateServiceDto, Object]),
     __metadata("design:returntype", void 0)
@@ -45,6 +59,34 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ServicesController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], ServicesController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'prestador'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, update_service_dto_1.UpdateServiceDto, Object]),
+    __metadata("design:returntype", void 0)
+], ServicesController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'prestador'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", void 0)
+], ServicesController.prototype, "remove", null);
 exports.ServicesController = ServicesController = __decorate([
     (0, common_1.Controller)('services'),
     __metadata("design:paramtypes", [services_service_1.ServicesService])

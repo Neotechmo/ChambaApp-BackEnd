@@ -61,9 +61,18 @@ let AuthService = class AuthService {
             },
         });
         if (userExists) {
-            throw new common_1.UnauthorizedException('El correo ya existe');
+            throw new common_1.ConflictException('El correo ya existe');
         }
         const hashedPassword = await bcrypt.hash(data.password, 10);
+        const roleName = data.rol ?? (data.rol_id === 3 ? 'prestador' : 'cliente');
+        const role = await this.prisma.role.findUnique({
+            where: {
+                nombre: roleName,
+            },
+        });
+        if (!role) {
+            throw new common_1.BadRequestException('Rol no valido para registro');
+        }
         const user = await this.prisma.usuario.create({
             data: {
                 nombre: data.nombre,
@@ -71,7 +80,10 @@ let AuthService = class AuthService {
                 correo: data.correo,
                 telefono: data.telefono,
                 password_hash: hashedPassword,
-                rol_id: 2,
+                rol_id: role.id,
+            },
+            include: {
+                rol: true,
             },
         });
         return {
@@ -79,6 +91,7 @@ let AuthService = class AuthService {
             user: {
                 nombre: user.nombre,
                 correo: user.correo,
+                rol: user.rol.nombre,
                 telefono: user.telefono
                     ? user.telefono
                     : 'No hay un teléfono registrado para este usuario',
@@ -89,6 +102,9 @@ let AuthService = class AuthService {
         const user = await this.prisma.usuario.findUnique({
             where: {
                 correo: data.correo,
+            },
+            include: {
+                rol: true,
             },
         });
         if (!user) {
@@ -109,6 +125,7 @@ let AuthService = class AuthService {
             user: {
                 nombre: user.nombre,
                 correo: user.correo,
+                rol: user.rol.nombre,
                 telefono: user.telefono
                     ? user.telefono
                     : 'No hay un teléfono registrado para este usuario',

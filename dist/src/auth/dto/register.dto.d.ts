@@ -4,4 +4,6 @@ export declare class RegisterDto {
     correo: string;
     password: string;
     telefono?: string;
+    rol_id?: number;
+    rol?: string;
 }

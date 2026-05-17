@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
@@ -20,10 +25,20 @@ export class AuthService {
     });
 
     if (userExists) {
-      throw new UnauthorizedException('El correo ya existe');
+      throw new ConflictException('El correo ya existe');
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
+    const roleName = data.rol ?? (data.rol_id === 3 ? 'prestador' : 'cliente');
+    const role = await this.prisma.role.findUnique({
+      where: {
+        nombre: roleName,
+      },
+    });
+
+    if (!role) {
+      throw new BadRequestException('Rol no valido para registro');
+    }
 
     const user = await this.prisma.usuario.create({
       data: {
@@ -32,8 +47,10 @@ export class AuthService {
         correo: data.correo,
         telefono: data.telefono,
         password_hash: hashedPassword,
-
-        rol_id: 2,
+        rol_id: role.id,
+      },
+      include: {
+        rol: true,
       },
     });
 
@@ -42,6 +59,7 @@ export class AuthService {
       user: {
         nombre: user.nombre,
         correo: user.correo,
+        rol: user.rol.nombre,
         telefono: user.telefono
           ? user.telefono
           : 'No hay un teléfono registrado para este usuario',
@@ -53,6 +71,9 @@ export class AuthService {
     const user = await this.prisma.usuario.findUnique({
       where: {
         correo: data.correo,
+      },
+      include: {
+        rol: true,
       },
     });
 
@@ -82,6 +103,7 @@ export class AuthService {
       user: {
         nombre: user.nombre,
         correo: user.correo,
+        rol: user.rol.nombre,
         telefono: user.telefono
           ? user.telefono
           : 'No hay un teléfono registrado para este usuario',

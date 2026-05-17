@@ -11,6 +11,7 @@ export declare class AuthService {
         user: {
             nombre: string;
             correo: string;
+            rol: string;
             telefono: string;
         };
     }>;
@@ -19,6 +20,7 @@ export declare class AuthService {
         user: {
             nombre: string;
             correo: string;
+            rol: string;
             telefono: string;
         };
     }>;
