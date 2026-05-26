@@ -24,12 +24,33 @@ model Usuario {
   activo                    Boolean        @default(true)
   verificado                Boolean        @default(false)
   fecha_registro            DateTime       @default(now())
+  ciudad                    String?
+  estado                    String?
+  lat                       Float?
+  lng                       Float?
+  preferencias              Json?
+  especialidad              String?
+  descripcion_profesional   String?
+  experiencia_anios         Int?
+  precio_hora               Float?
+  zona_cobertura            String?
+  disponible                Boolean        @default(true)
+  etiquetas                 String[]       @default([])
   rol_id                    Int
   rol                       Role           @relation(fields: [rol_id], references: [id])
   servicios                 Servicio[]
   solicitudes               Solicitud[]
   calificaciones_realizadas Calificacion[] @relation("ClienteCalificaciones")
   calificaciones_recibidas  Calificacion[] @relation("PrestadorCalificaciones")
+  favoritos_cliente         Favorito[]     @relation("ClienteFavoritos")
+  favoritos_prestador       Favorito[]     @relation("PrestadorFavorito")
+  direcciones               Direccion[]
+}
+
+model Categoria {
+  id        Int        @id @default(autoincrement())
+  nombre    String     @unique
+  servicios Servicio[]
 }
 
 model Servicio {
@@ -41,29 +62,66 @@ model Servicio {
   fecha_creacion DateTime       @default(now())
   prestador_id   Int
   prestador      Usuario        @relation(fields: [prestador_id], references: [id])
+  categoria_id   Int?
+  categoria      Categoria?     @relation(fields: [categoria_id], references: [id])
   solicitudes    Solicitud[]
   calificaciones Calificacion[]
 }
 
 model Solicitud {
-  id                 Int           @id @default(autoincrement())
-  descripcion        String?
-  direccion_servicio String?
-  estado             String        @default("pendiente")
-  fecha_solicitud    DateTime      @default(now())
-  cliente_id         Int
-  servicio_id        Int
-  cliente            Usuario       @relation(fields: [cliente_id], references: [id])
-  servicio           Servicio      @relation(fields: [servicio_id], references: [id])
-  pago               Pago?
-  calificacion       Calificacion?
+  id                    Int           @id @default(autoincrement())
+  titulo                String?
+  descripcion           String?
+  direccion_servicio    String?
+  prioridad             String        @default("normal")
+  estado                String        @default("pending")
+  fecha_solicitud       DateTime      @default(now())
+  fecha_programada      DateTime?
+  fecha_propuesta       DateTime?
+  propuesta_pendiente   Boolean       @default(false)
+  duracion_estimada_min Int?
+  precio_estimado       Float?
+  precio_final          Float?
+  cliente_id            Int
+  servicio_id           Int
+  direccion_id          Int?
+  cliente               Usuario       @relation(fields: [cliente_id], references: [id])
+  servicio              Servicio      @relation(fields: [servicio_id], references: [id])
+  direccion             Direccion?    @relation(fields: [direccion_id], references: [id])
+  pago                  Pago?
+  calificacion          Calificacion?
+}
+
+model Direccion {
+  id            Int         @id @default(autoincrement())
+  etiqueta      String?
+  calle         String
+  ciudad        String
+  estado        String
+  codigo_postal String?
+  lat           Float?
+  lng           Float?
+  usuario_id    Int
+  usuario       Usuario     @relation(fields: [usuario_id], references: [id])
+  solicitudes   Solicitud[]
+}
+
+model Favorito {
+  id             Int      @id @default(autoincrement())
+  cliente_id     Int
+  prestador_id   Int
+  fecha_creacion DateTime @default(now())
+  cliente        Usuario  @relation("ClienteFavoritos", fields: [cliente_id], references: [id])
+  prestador      Usuario  @relation("PrestadorFavorito", fields: [prestador_id], references: [id])
+
+  @@unique([cliente_id, prestador_id])
 }
 
 model Pago {
   id             Int       @id @default(autoincrement())
   monto          Float
   metodo         String?
-  estado         String    @default("pendiente")
+  estado         String    @default("pending")
   referencia     String?
   fecha_pago     DateTime?
   fecha_creacion DateTime  @default(now())

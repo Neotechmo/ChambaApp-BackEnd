@@ -1,6 +1,8 @@
 import { HydratedDocument } from 'mongoose';
 export type ChatMessageDocument = HydratedDocument<ChatMessage>;
 export declare class ChatMessage {
+    createdAt: Date;
+    updatedAt: Date;
     roomId: string;
     senderId: number;
     receiverId?: number;
@@ -16,6 +18,24 @@ export declare const ChatMessageSchema: import("mongoose").Schema<ChatMessage, i
 }, "id"> & {
     id: string;
 }, {
+    createdAt?: import("mongoose").SchemaDefinitionProperty<Date, ChatMessage, import("mongoose").Document<unknown, {}, ChatMessage, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<ChatMessage & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }, "id"> & {
+        id: string;
+    }> | undefined;
+    updatedAt?: import("mongoose").SchemaDefinitionProperty<Date, ChatMessage, import("mongoose").Document<unknown, {}, ChatMessage, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<ChatMessage & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    }, "id"> & {
+        id: string;
+    }> | undefined;
     roomId?: import("mongoose").SchemaDefinitionProperty<string, ChatMessage, import("mongoose").Document<unknown, {}, ChatMessage, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<ChatMessage & {

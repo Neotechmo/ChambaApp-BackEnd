@@ -1,6 +1,7 @@
 import { PrismaService } from '../prisma/prisma.service';
 import type { CreateCalificacionDto } from './dto/create-calificacion.dto';
 import type { UpdateCalificacionDto } from './dto/update-calificacion.dto';
+import type { CreateReviewDto } from './dto/create-review.dto';
 export declare class CalificacionesService {
     private readonly prisma;
     constructor(prisma: PrismaService);
@@ -8,46 +9,20 @@ export declare class CalificacionesService {
         cliente: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         prestador: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         servicio: {
             id: number;
             titulo: string;
-            descripcion: string;
-            precio_base: number;
-            disponible: boolean;
-            fecha_creacion: Date;
-            prestador_id: number;
         };
         solicitud: {
             id: number;
-            descripcion: string | null;
-            direccion_servicio: string | null;
             estado: string;
-            fecha_solicitud: Date;
-            cliente_id: number;
-            servicio_id: number;
         };
     } & {
         id: number;
@@ -59,50 +34,69 @@ export declare class CalificacionesService {
         cliente_id: number;
         servicio_id: number;
     }>;
-    findAll(userId: number, rolId: number): Promise<({
+    createReview(solicitudId: number, data: CreateReviewDto, userId: number): Promise<{
         cliente: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         prestador: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         servicio: {
             id: number;
             titulo: string;
-            descripcion: string;
-            precio_base: number;
-            disponible: boolean;
-            fecha_creacion: Date;
-            prestador_id: number;
         };
         solicitud: {
             id: number;
-            descripcion: string | null;
-            direccion_servicio: string | null;
             estado: string;
-            fecha_solicitud: Date;
-            cliente_id: number;
-            servicio_id: number;
+        };
+    } & {
+        id: number;
+        fecha_creacion: Date;
+        prestador_id: number;
+        puntuacion: number;
+        comentario: string | null;
+        solicitud_id: number;
+        cliente_id: number;
+        servicio_id: number;
+    }>;
+    providerReviews(providerId: number): Promise<{
+        summary: {
+            average: number;
+            total: number;
+            satisfactionPercent: number;
+            distribution: Record<string, number>;
+        };
+        data: {
+            id: number;
+            clientName: string;
+            service: string;
+            rating: number;
+            comment: string | null;
+            createdAt: Date;
+        }[];
+    }>;
+    findAll(userId: number, rolId: number): Promise<({
+        cliente: {
+            id: number;
+            nombre: string;
+            apellido: string | null;
+        };
+        prestador: {
+            id: number;
+            nombre: string;
+            apellido: string | null;
+        };
+        servicio: {
+            id: number;
+            titulo: string;
+        };
+        solicitud: {
+            id: number;
+            estado: string;
         };
     } & {
         id: number;
@@ -118,46 +112,20 @@ export declare class CalificacionesService {
         cliente: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         prestador: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         servicio: {
             id: number;
             titulo: string;
-            descripcion: string;
-            precio_base: number;
-            disponible: boolean;
-            fecha_creacion: Date;
-            prestador_id: number;
         };
         solicitud: {
             id: number;
-            descripcion: string | null;
-            direccion_servicio: string | null;
             estado: string;
-            fecha_solicitud: Date;
-            cliente_id: number;
-            servicio_id: number;
         };
     } & {
         id: number;
@@ -173,46 +141,20 @@ export declare class CalificacionesService {
         cliente: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         prestador: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         servicio: {
             id: number;
             titulo: string;
-            descripcion: string;
-            precio_base: number;
-            disponible: boolean;
-            fecha_creacion: Date;
-            prestador_id: number;
         };
         solicitud: {
             id: number;
-            descripcion: string | null;
-            direccion_servicio: string | null;
             estado: string;
-            fecha_solicitud: Date;
-            cliente_id: number;
-            servicio_id: number;
         };
     } & {
         id: number;

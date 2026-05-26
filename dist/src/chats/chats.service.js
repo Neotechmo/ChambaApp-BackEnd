@@ -17,18 +17,106 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const chat_message_schema_1 = require("./schemas/chat-message.schema");
+const prisma_service_1 = require("../prisma/prisma.service");
 let ChatsService = class ChatsService {
     chatMessageModel;
-    constructor(chatMessageModel) {
+    prisma;
+    constructor(chatMessageModel, prisma) {
         this.chatMessageModel = chatMessageModel;
+        this.prisma = prisma;
     }
     async create(data, userId) {
         return this.chatMessageModel.create({
             roomId: data.roomId,
-            senderId: data.senderId ?? userId,
+            senderId: userId,
             receiverId: data.receiverId,
             message: data.message,
         });
+    }
+    async findConversations(userId, rolId) {
+        const requests = await this.prisma.solicitud.findMany({
+            where: rolId === 1
+                ? {}
+                : {
+                    OR: [
+                        { cliente_id: userId },
+                        { servicio: { prestador_id: userId } },
+                    ],
+                },
+            include: {
+                cliente: { select: { id: true, nombre: true, apellido: true } },
+                servicio: {
+                    include: {
+                        prestador: {
+                            select: {
+                                id: true,
+                                nombre: true,
+                                apellido: true,
+                                especialidad: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        const data = await Promise.all(requests.map(async (request) => {
+            const roomId = this.roomId(request.id);
+            const [lastMessage, unreadCount] = await Promise.all([
+                this.chatMessageModel
+                    .findOne({ roomId })
+                    .sort({ createdAt: -1 })
+                    .exec(),
+                this.chatMessageModel.countDocuments({
+                    roomId,
+                    receiverId: userId,
+                    read: false,
+                }),
+            ]);
+            const other = request.cliente_id === userId
+                ? request.servicio.prestador
+                : request.cliente;
+            return {
+                id: request.id,
+                requestId: request.id,
+                otherUser: {
+                    id: other.id,
+                    nombre: [other.nombre, other.apellido].filter(Boolean).join(' '),
+                    oficio: 'especialidad' in other
+                        ? (other.especialidad ?? undefined)
+                        : undefined,
+                },
+                lastMessage: lastMessage?.message ?? null,
+                lastMessageAt: lastMessage?.createdAt ?? null,
+                unreadCount,
+            };
+        }));
+        return { data };
+    }
+    async findConversationMessages(id, userId, rolId) {
+        await this.authorizeConversation(id, userId, rolId);
+        const messages = await this.chatMessageModel
+            .find({ roomId: this.roomId(id) })
+            .sort({ createdAt: 1 })
+            .exec();
+        return { data: messages.map((message) => this.mapMessage(id, message)) };
+    }
+    async sendConversationMessage(id, text, userId, rolId) {
+        const request = await this.authorizeConversation(id, userId, rolId);
+        const receiverId = request.cliente_id === userId
+            ? request.servicio.prestador_id
+            : request.cliente_id;
+        const message = await this.chatMessageModel.create({
+            roomId: this.roomId(id),
+            senderId: userId,
+            receiverId,
+            message: text,
+        });
+        return this.mapMessage(id, message);
+    }
+    async markConversationRead(id, userId, rolId) {
+        await this.authorizeConversation(id, userId, rolId);
+        await this.chatMessageModel.updateMany({ roomId: this.roomId(id), receiverId: userId, read: false }, { read: true });
+        return { id, unreadCount: 0 };
     }
     async findAll(userId, rolId) {
         const filter = rolId === 1
@@ -80,11 +168,40 @@ let ChatsService = class ChatsService {
             message: 'Mensaje eliminado correctamente',
         };
     }
+    async authorizeConversation(id, userId, rolId) {
+        const request = await this.prisma.solicitud.findUnique({
+            where: { id },
+            include: { servicio: true },
+        });
+        if (!request) {
+            throw new common_1.NotFoundException('Conversacion no encontrada');
+        }
+        if (rolId !== 1 &&
+            request.cliente_id !== userId &&
+            request.servicio.prestador_id !== userId) {
+            throw new common_1.ForbiddenException('No puedes ver esta conversacion');
+        }
+        return request;
+    }
+    roomId(id) {
+        return `request-${id}`;
+    }
+    mapMessage(conversationId, message) {
+        return {
+            id: message.id,
+            conversationId,
+            senderId: message.senderId,
+            text: message.message,
+            sentAt: message.createdAt,
+            readAt: message.read ? message.updatedAt : null,
+        };
+    }
 };
 exports.ChatsService = ChatsService;
 exports.ChatsService = ChatsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(chat_message_schema_1.ChatMessage.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        prisma_service_1.PrismaService])
 ], ChatsService);
 //# sourceMappingURL=chats.service.js.map

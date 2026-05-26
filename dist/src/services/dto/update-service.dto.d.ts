@@ -3,4 +3,5 @@ export declare class UpdateServiceDto {
     descripcion?: string;
     precio_base?: number;
     disponible?: boolean;
+    categoryId?: number;
 }

@@ -57,12 +57,12 @@ export class AuthService {
     return {
       message: `Usuario ${data.nombre} ha sido registrado`,
       user: {
+        id: user.id,
         nombre: user.nombre,
+        apellido: user.apellido,
         correo: user.correo,
         rol: user.rol.nombre,
-        telefono: user.telefono
-          ? user.telefono
-          : 'No hay un teléfono registrado para este usuario',
+        telefono: user.telefono,
       },
     };
   }
@@ -79,6 +79,10 @@ export class AuthService {
 
     if (!user) {
       throw new UnauthorizedException('Credenciales incorrectas');
+    }
+
+    if (!user.activo) {
+      throw new UnauthorizedException('La cuenta esta desactivada');
     }
 
     const passwordMatch = await bcrypt.compare(
@@ -101,12 +105,13 @@ export class AuthService {
     return {
       access_token: token,
       user: {
+        id: user.id,
         nombre: user.nombre,
+        apellido: user.apellido,
         correo: user.correo,
         rol: user.rol.nombre,
-        telefono: user.telefono
-          ? user.telefono
-          : 'No hay un teléfono registrado para este usuario',
+        telefono: user.telefono,
+        avatar: user.foto_perfil,
       },
     };
   }

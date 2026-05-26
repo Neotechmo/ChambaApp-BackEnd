@@ -15,6 +15,7 @@ class CreateServiceDto {
     titulo;
     descripcion;
     precio_base;
+    categoryId;
 }
 exports.CreateServiceDto = CreateServiceDto;
 __decorate([
@@ -30,4 +31,10 @@ __decorate([
     (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
 ], CreateServiceDto.prototype, "precio_base", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    __metadata("design:type", Number)
+], CreateServiceDto.prototype, "categoryId", void 0);
 //# sourceMappingURL=create-service.dto.js.map

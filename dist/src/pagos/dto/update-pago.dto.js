@@ -38,7 +38,16 @@ __decorate([
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsIn)(['pendiente', 'pagado', 'fallido', 'reembolsado']),
+    (0, class_validator_1.IsIn)([
+        'pending',
+        'paid',
+        'failed',
+        'refunded',
+        'pendiente',
+        'pagado',
+        'fallido',
+        'reembolsado',
+    ]),
     __metadata("design:type", String)
 ], UpdatePagoDto.prototype, "estado", void 0);
 __decorate([

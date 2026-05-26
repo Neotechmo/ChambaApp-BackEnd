@@ -30,7 +30,20 @@ __decorate([
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsIn)(['pendiente', 'aceptada', 'rechazada', 'completada', 'cancelada']),
+    (0, class_validator_1.IsIn)([
+        'pending',
+        'accepted',
+        'on_the_way',
+        'in_progress',
+        'completed',
+        'cancelled',
+        'rejected',
+        'pendiente',
+        'aceptada',
+        'rechazada',
+        'completada',
+        'cancelada',
+    ]),
     __metadata("design:type", String)
 ], UpdateSolicitudDto.prototype, "estado", void 0);
 //# sourceMappingURL=update-solicitud.dto.js.map

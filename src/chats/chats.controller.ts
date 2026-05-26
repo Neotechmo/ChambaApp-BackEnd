@@ -14,6 +14,8 @@ import type { AuthUser } from '../auth/types/auth-user.type';
 import { ChatsService } from './chats.service';
 import { CreateChatMessageDto } from './dto/create-chat-message.dto';
 import { UpdateChatMessageDto } from './dto/update-chat-message.dto';
+import { SendConversationMessageDto } from './dto/send-conversation-message.dto';
+import { ParseIntPipe } from '@nestjs/common';
 
 @Controller('chats')
 @UseGuards(AuthGuard('jwt'))
@@ -52,5 +54,47 @@ export class ChatsController {
   @Delete(':id')
   remove(@Param('id') id: string, @CurrentUser() user: AuthUser) {
     return this.chatsService.remove(id, user.userId, user.rol_id);
+  }
+}
+
+@Controller('conversations')
+@UseGuards(AuthGuard('jwt'))
+export class ConversationsController {
+  constructor(private readonly chatsService: ChatsService) {}
+
+  @Get()
+  findAll(@CurrentUser() user: AuthUser) {
+    return this.chatsService.findConversations(user.userId, user.rol_id);
+  }
+
+  @Get(':id/messages')
+  findMessages(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.chatsService.findConversationMessages(
+      id,
+      user.userId,
+      user.rol_id,
+    );
+  }
+
+  @Post(':id/messages')
+  sendMessage(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: SendConversationMessageDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.chatsService.sendConversationMessage(
+      id,
+      data.text,
+      user.userId,
+      user.rol_id,
+    );
+  }
+
+  @Patch(':id/read')
+  read(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthUser) {
+    return this.chatsService.markConversationRead(id, user.userId, user.rol_id);
   }
 }

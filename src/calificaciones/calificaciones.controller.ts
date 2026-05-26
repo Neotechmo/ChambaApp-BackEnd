@@ -17,6 +17,7 @@ import type { AuthUser } from '../auth/types/auth-user.type';
 import { CalificacionesService } from './calificaciones.service';
 import { CreateCalificacionDto } from './dto/create-calificacion.dto';
 import { UpdateCalificacionDto } from './dto/update-calificacion.dto';
+import { CreateReviewDto } from './dto/create-review.dto';
 
 @Controller('calificaciones')
 @UseGuards(AuthGuard('jwt'))
@@ -60,5 +61,43 @@ export class CalificacionesController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthUser) {
     return this.calificacionesService.remove(id, user.userId, user.rol_id);
+  }
+}
+
+@Controller('requests')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+export class RequestReviewsController {
+  constructor(private readonly calificacionesService: CalificacionesService) {}
+
+  @Post(':id/review')
+  @Roles('cliente')
+  create(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: CreateReviewDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.calificacionesService.createReview(id, data, user.userId);
+  }
+}
+
+@Controller('providers')
+export class ProviderPublicReviewsController {
+  constructor(private readonly calificacionesService: CalificacionesService) {}
+
+  @Get(':id/reviews')
+  findReviews(@Param('id', ParseIntPipe) id: number) {
+    return this.calificacionesService.providerReviews(id);
+  }
+}
+
+@Controller('provider')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+@Roles('prestador')
+export class ProviderReviewSummaryController {
+  constructor(private readonly calificacionesService: CalificacionesService) {}
+
+  @Get('reviews/summary')
+  summary(@CurrentUser() user: AuthUser) {
+    return this.calificacionesService.providerReviews(user.userId);
   }
 }

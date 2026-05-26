@@ -24,52 +24,165 @@ let ServicesService = class ServicesService {
                 descripcion: data.descripcion,
                 precio_base: data.precio_base,
                 prestador_id: userId,
+                categoria_id: data.categoryId,
             },
             include: {
                 prestador: {
-                    include: {
+                    select: {
+                        id: true,
+                        nombre: true,
+                        apellido: true,
                         rol: true,
                     },
                 },
             },
         });
     }
-    async findAll() {
-        return this.prisma.servicio.findMany({
+    async findAll(query) {
+        const where = {
+            ...(query.search
+                ? {
+                    OR: [
+                        {
+                            titulo: {
+                                contains: query.search,
+                                mode: 'insensitive',
+                            },
+                        },
+                        {
+                            descripcion: {
+                                contains: query.search,
+                                mode: 'insensitive',
+                            },
+                        },
+                        {
+                            prestador: {
+                                especialidad: {
+                                    contains: query.search,
+                                    mode: 'insensitive',
+                                },
+                            },
+                        },
+                    ],
+                }
+                : {}),
+            ...(query.categoryId ? { categoria_id: query.categoryId } : {}),
+            ...(query.available !== undefined ? { disponible: query.available } : {}),
+            ...(query.verified !== undefined || query.available === true
+                ? {
+                    prestador: {
+                        verificado: query.verified,
+                        disponible: query.available === true ? true : undefined,
+                    },
+                }
+                : {}),
+            ...(query.minPrice !== undefined || query.maxPrice !== undefined
+                ? {
+                    precio_base: {
+                        gte: query.minPrice,
+                        lte: query.maxPrice,
+                    },
+                }
+                : {}),
+        };
+        const [services, total] = await this.prisma.$transaction([
+            this.prisma.servicio.findMany({
+                where,
+                skip: (query.page - 1) * query.limit,
+                take: query.limit,
+                orderBy: query.sort === 'price_asc'
+                    ? { precio_base: 'asc' }
+                    : query.sort === 'price_desc'
+                        ? { precio_base: 'desc' }
+                        : { fecha_creacion: 'desc' },
+                include: {
+                    prestador: true,
+                    categoria: true,
+                    calificaciones: { select: { puntuacion: true } },
+                },
+            }),
+            this.prisma.servicio.count({ where }),
+        ]);
+        const mapped = services
+            .map((service) => this.toCatalogItem(service, query.lat, query.lng))
+            .filter((service) => (query.minRating === undefined ||
+            service.rating >= query.minRating) &&
+            (query.radiusKm === undefined ||
+                (service.distanciaKm !== null &&
+                    service.distanciaKm <= query.radiusKm)));
+        if (query.sort === 'rating') {
+            mapped.sort((a, b) => b.rating - a.rating);
+        }
+        else if (query.sort === 'distance') {
+            mapped.sort((a, b) => (a.distanciaKm ?? Number.POSITIVE_INFINITY) -
+                (b.distanciaKm ?? Number.POSITIVE_INFINITY));
+        }
+        else if (query.sort === 'availability') {
+            mapped.sort((a, b) => a.disponibilidad === b.disponibilidad
+                ? 0
+                : a.disponibilidad === 'Disponible'
+                    ? -1
+                    : 1);
+        }
+        return {
+            data: mapped,
+            meta: {
+                page: query.page,
+                limit: query.limit,
+                total,
+                totalPages: Math.ceil(total / query.limit),
+            },
+        };
+    }
+    async findCategories() {
+        const categories = await this.prisma.categoria.findMany({
+            orderBy: { nombre: 'asc' },
             include: {
-                prestador: {
-                    include: {
-                        rol: true,
+                _count: {
+                    select: {
+                        servicios: {
+                            where: {
+                                disponible: true,
+                                prestador: { disponible: true },
+                            },
+                        },
                     },
                 },
-                solicitudes: true,
-                calificaciones: true,
             },
         });
+        return {
+            data: categories.map((category) => ({
+                id: category.id,
+                nombre: category.nombre,
+                providersAvailable: category._count.servicios,
+            })),
+        };
     }
     async findOne(id) {
         const service = await this.prisma.servicio.findUnique({
             where: { id },
             include: {
-                prestador: {
-                    include: {
-                        rol: true,
-                    },
+                prestador: true,
+                categoria: true,
+                calificaciones: {
+                    select: { puntuacion: true, comentario: true, fecha_creacion: true },
                 },
-                solicitudes: {
-                    include: {
-                        cliente: true,
-                        pago: true,
-                        calificacion: true,
-                    },
-                },
-                calificaciones: true,
             },
         });
         if (!service) {
             throw new common_1.NotFoundException('Servicio no encontrado');
         }
-        return service;
+        return {
+            ...this.toCatalogItem(service),
+            descripcion: service.descripcion,
+            experienciaAnios: service.prestador.experiencia_anios,
+            zonaCobertura: service.prestador.zona_cobertura,
+            etiquetas: service.prestador.etiquetas,
+            coordinates: {
+                lat: service.prestador.lat,
+                lng: service.prestador.lng,
+            },
+        };
     }
     async update(id, data, userId, rolId) {
         const service = await this.prisma.servicio.findUnique({
@@ -83,10 +196,19 @@ let ServicesService = class ServicesService {
         }
         return this.prisma.servicio.update({
             where: { id },
-            data,
+            data: {
+                titulo: data.titulo,
+                descripcion: data.descripcion,
+                precio_base: data.precio_base,
+                disponible: data.disponible,
+                categoria_id: data.categoryId,
+            },
             include: {
                 prestador: {
-                    include: {
+                    select: {
+                        id: true,
+                        nombre: true,
+                        apellido: true,
                         rol: true,
                     },
                 },
@@ -109,6 +231,48 @@ let ServicesService = class ServicesService {
         return {
             message: 'Servicio eliminado correctamente',
         };
+    }
+    toCatalogItem(service, originLat, originLng) {
+        const reviews = service.calificaciones.length;
+        const rating = reviews
+            ? service.calificaciones.reduce((total, ratingValue) => total + ratingValue.puntuacion, 0) / reviews
+            : 0;
+        const distanciaKm = originLat !== undefined &&
+            originLng !== undefined &&
+            service.prestador.lat !== null &&
+            service.prestador.lng !== null
+            ? this.distanceKm(originLat, originLng, service.prestador.lat, service.prestador.lng)
+            : null;
+        return {
+            id: service.id,
+            providerId: service.prestador_id,
+            nombre: [service.prestador.nombre, service.prestador.apellido]
+                .filter(Boolean)
+                .join(' '),
+            oficio: service.prestador.especialidad ?? service.titulo,
+            categoria: service.categoria,
+            precio: service.precio_base,
+            unidadPrecio: 'hora',
+            distanciaKm,
+            distancia: distanciaKm === null ? null : `${distanciaKm.toFixed(1)} km`,
+            disponibilidad: service.disponible && service.prestador.disponible
+                ? 'Disponible'
+                : 'No disponible',
+            rating,
+            reviews,
+            verificado: service.prestador.verificado,
+            favorito: false,
+        };
+    }
+    distanceKm(latA, lngA, latB, lngB) {
+        const radians = (value) => (value * Math.PI) / 180;
+        const dLat = radians(latB - latA);
+        const dLng = radians(lngB - lngA);
+        const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(radians(latA)) *
+                Math.cos(radians(latB)) *
+                Math.sin(dLng / 2) ** 2;
+        return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 };
 exports.ServicesService = ServicesService;

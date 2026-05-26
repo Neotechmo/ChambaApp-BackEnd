@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PagosController = void 0;
+exports.RequestPaymentsController = exports.PagosController = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
@@ -20,6 +20,7 @@ const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const create_pago_dto_1 = require("./dto/create-pago.dto");
 const update_pago_dto_1 = require("./dto/update-pago.dto");
+const request_payment_dto_1 = require("./dto/request-payment.dto");
 const pagos_service_1 = require("./pagos.service");
 let PagosController = class PagosController {
     pagosService;
@@ -46,7 +47,7 @@ exports.PagosController = PagosController;
 __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('admin', 'cliente'),
+    (0, roles_decorator_1.Roles)('cliente'),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
@@ -90,4 +91,52 @@ exports.PagosController = PagosController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     __metadata("design:paramtypes", [pagos_service_1.PagosService])
 ], PagosController);
+let RequestPaymentsController = class RequestPaymentsController {
+    pagosService;
+    constructor(pagosService) {
+        this.pagosService = pagosService;
+    }
+    getPayment(id, user) {
+        return this.pagosService.findByRequest(id, user.userId, user.rol_id);
+    }
+    createPayment(id, data, user) {
+        return this.pagosService.createForRequest(id, data, user.userId);
+    }
+    confirmPayment(id, user) {
+        return this.pagosService.confirm(id, user.userId);
+    }
+};
+exports.RequestPaymentsController = RequestPaymentsController;
+__decorate([
+    (0, common_1.Get)(':id/payment'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", void 0)
+], RequestPaymentsController.prototype, "getPayment", null);
+__decorate([
+    (0, common_1.Post)(':id/payment'),
+    (0, roles_decorator_1.Roles)('cliente'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, request_payment_dto_1.CreateRequestPaymentDto, Object]),
+    __metadata("design:returntype", void 0)
+], RequestPaymentsController.prototype, "createPayment", null);
+__decorate([
+    (0, common_1.Patch)(':id/payment/confirm'),
+    (0, roles_decorator_1.Roles)('cliente'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", void 0)
+], RequestPaymentsController.prototype, "confirmPayment", null);
+exports.RequestPaymentsController = RequestPaymentsController = __decorate([
+    (0, common_1.Controller)('requests'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    __metadata("design:paramtypes", [pagos_service_1.PagosService])
+], RequestPaymentsController);
 //# sourceMappingURL=pagos.controller.js.map

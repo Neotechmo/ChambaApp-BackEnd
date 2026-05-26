@@ -44,7 +44,17 @@ async function main() {
 
   const prestador = await prisma.usuario.upsert({
     where: { correo: 'prestador@chambaapp.com' },
-    update: {},
+    update: {
+      especialidad: 'Plomeria',
+      descripcion_profesional: 'Reparaciones e instalaciones para hogar.',
+      experiencia_anios: 5,
+      precio_hora: 350,
+      zona_cobertura: 'Leon, Guanajuato',
+      lat: 21.123,
+      lng: -101.681,
+      disponible: true,
+      etiquetas: ['Fugas', 'Instalaciones'],
+    },
     create: {
       nombre: 'Prestador',
       apellido: 'Demo',
@@ -54,6 +64,15 @@ async function main() {
       rol_id: prestadorRole.id,
       activo: true,
       verificado: true,
+      especialidad: 'Plomeria',
+      descripcion_profesional: 'Reparaciones e instalaciones para hogar.',
+      experiencia_anios: 5,
+      precio_hora: 350,
+      zona_cobertura: 'Leon, Guanajuato',
+      lat: 21.123,
+      lng: -101.681,
+      disponible: true,
+      etiquetas: ['Fugas', 'Instalaciones'],
     },
   });
 
@@ -72,6 +91,12 @@ async function main() {
     },
   });
 
+  const category = await prisma.categoria.upsert({
+    where: { nombre: 'Plomeria' },
+    update: {},
+    create: { nombre: 'Plomeria' },
+  });
+
   const existingService = await prisma.servicio.findFirst({
     where: {
       titulo: 'Plomeria general',
@@ -86,7 +111,13 @@ async function main() {
         descripcion: 'Reparaciones e instalaciones de plomeria para hogar.',
         precio_base: 350,
         prestador_id: prestador.id,
+        categoria_id: category.id,
       },
+    });
+  } else {
+    await prisma.servicio.update({
+      where: { id: existingService.id },
+      data: { categoria_id: category.id },
     });
   }
 }
@@ -100,4 +131,3 @@ main()
     await prisma.$disconnect();
     process.exit(1);
   });
-

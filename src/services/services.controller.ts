@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -20,6 +21,7 @@ import { ServicesService } from './services.service';
 
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { ListServicesQueryDto } from './dto/list-services-query.dto';
 
 @Controller('services')
 export class ServicesController {
@@ -33,8 +35,8 @@ export class ServicesController {
   }
 
   @Get()
-  findAll() {
-    return this.servicesService.findAll();
+  findAll(@Query() query: ListServicesQueryDto) {
+    return this.servicesService.findAll(query);
   }
 
   @Get(':id')
@@ -58,5 +60,15 @@ export class ServicesController {
   @Roles('admin', 'prestador')
   remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthUser) {
     return this.servicesService.remove(id, user.userId, user.rol_id);
+  }
+}
+
+@Controller('categories')
+export class CategoriesController {
+  constructor(private readonly servicesService: ServicesService) {}
+
+  @Get()
+  findAll() {
+    return this.servicesService.findCategories();
   }
 }

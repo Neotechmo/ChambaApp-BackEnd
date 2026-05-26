@@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatMessageSchema = exports.ChatMessage = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 let ChatMessage = class ChatMessage {
+    createdAt;
+    updatedAt;
     roomId;
     senderId;
     receiverId;

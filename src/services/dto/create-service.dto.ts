@@ -1,4 +1,4 @@
-import { IsNumber, IsString, Min } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateServiceDto {
   @IsString()
@@ -10,4 +10,9 @@ export class CreateServiceDto {
   @IsNumber()
   @Min(0)
   precio_base!: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  categoryId?: number;
 }

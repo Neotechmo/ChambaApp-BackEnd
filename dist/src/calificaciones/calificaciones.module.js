@@ -15,7 +15,12 @@ let CalificacionesModule = class CalificacionesModule {
 exports.CalificacionesModule = CalificacionesModule;
 exports.CalificacionesModule = CalificacionesModule = __decorate([
     (0, common_1.Module)({
-        controllers: [calificaciones_controller_1.CalificacionesController],
+        controllers: [
+            calificaciones_controller_1.CalificacionesController,
+            calificaciones_controller_1.RequestReviewsController,
+            calificaciones_controller_1.ProviderPublicReviewsController,
+            calificaciones_controller_1.ProviderReviewSummaryController,
+        ],
         providers: [calificaciones_service_1.CalificacionesService],
     })
 ], CalificacionesModule);

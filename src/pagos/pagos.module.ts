@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
-import { PagosController } from './pagos.controller';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { ChatsModule } from '../chats/chats.module';
+import { PagosController, RequestPaymentsController } from './pagos.controller';
 import { PagosService } from './pagos.service';
 
 @Module({
-  controllers: [PagosController],
+  imports: [NotificationsModule, ChatsModule],
+  controllers: [PagosController, RequestPaymentsController],
   providers: [PagosService],
 })
 export class PagosModule {}

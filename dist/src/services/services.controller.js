@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ServicesController = void 0;
+exports.CategoriesController = exports.ServicesController = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
@@ -21,6 +21,7 @@ const roles_guard_1 = require("../auth/guards/roles.guard");
 const services_service_1 = require("./services.service");
 const create_service_dto_1 = require("./dto/create-service.dto");
 const update_service_dto_1 = require("./dto/update-service.dto");
+const list_services_query_dto_1 = require("./dto/list-services-query.dto");
 let ServicesController = class ServicesController {
     servicesService;
     constructor(servicesService) {
@@ -29,8 +30,8 @@ let ServicesController = class ServicesController {
     create(data, user) {
         return this.servicesService.create(data, user.userId);
     }
-    findAll() {
-        return this.servicesService.findAll();
+    findAll(query) {
+        return this.servicesService.findAll(query);
     }
     findOne(id) {
         return this.servicesService.findOne(id);
@@ -55,8 +56,9 @@ __decorate([
 ], ServicesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [list_services_query_dto_1.ListServicesQueryDto]),
     __metadata("design:returntype", void 0)
 ], ServicesController.prototype, "findAll", null);
 __decorate([
@@ -91,4 +93,24 @@ exports.ServicesController = ServicesController = __decorate([
     (0, common_1.Controller)('services'),
     __metadata("design:paramtypes", [services_service_1.ServicesService])
 ], ServicesController);
+let CategoriesController = class CategoriesController {
+    servicesService;
+    constructor(servicesService) {
+        this.servicesService = servicesService;
+    }
+    findAll() {
+        return this.servicesService.findCategories();
+    }
+};
+exports.CategoriesController = CategoriesController;
+__decorate([
+    (0, common_1.Get)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], CategoriesController.prototype, "findAll", null);
+exports.CategoriesController = CategoriesController = __decorate([
+    (0, common_1.Controller)('categories'),
+    __metadata("design:paramtypes", [services_service_1.ServicesService])
+], CategoriesController);
 //# sourceMappingURL=services.controller.js.map

@@ -12,6 +12,9 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ServicesModule } from './services/services.module';
 import { SolicitudesModule } from './solicitudes/solicitudes.module';
 import { UsersModule } from './users/users.module';
+import { FavoritesModule } from './favorites/favorites.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { AddressesModule } from './addresses/addresses.module';
 
 @Module({
   imports: [
@@ -30,6 +33,9 @@ import { UsersModule } from './users/users.module';
     NotificationsModule,
     ChatsModule,
     LogsModule,
+    FavoritesModule,
+    DashboardModule,
+    AddressesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

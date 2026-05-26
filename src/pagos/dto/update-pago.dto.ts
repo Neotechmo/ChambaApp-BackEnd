@@ -23,7 +23,16 @@ export class UpdatePagoDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(['pendiente', 'pagado', 'fallido', 'reembolsado'])
+  @IsIn([
+    'pending',
+    'paid',
+    'failed',
+    'refunded',
+    'pendiente',
+    'pagado',
+    'fallido',
+    'reembolsado',
+  ])
   estado?: string;
 
   @IsOptional()

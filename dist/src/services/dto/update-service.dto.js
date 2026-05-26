@@ -16,6 +16,7 @@ class UpdateServiceDto {
     descripcion;
     precio_base;
     disponible;
+    categoryId;
 }
 exports.UpdateServiceDto = UpdateServiceDto;
 __decorate([
@@ -39,4 +40,10 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], UpdateServiceDto.prototype, "disponible", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
+    __metadata("design:type", Number)
+], UpdateServiceDto.prototype, "categoryId", void 0);
 //# sourceMappingURL=update-service.dto.js.map

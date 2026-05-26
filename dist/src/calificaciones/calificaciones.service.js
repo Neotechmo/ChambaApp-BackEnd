@@ -34,7 +34,7 @@ let CalificacionesService = class CalificacionesService {
         if (rolId !== 1 && solicitud.cliente_id !== userId) {
             throw new common_1.ForbiddenException('No puedes calificar esta solicitud');
         }
-        if (solicitud.estado !== 'completada') {
+        if (!['completed', 'completada'].includes(solicitud.estado)) {
             throw new common_1.BadRequestException('Solo puedes calificar solicitudes completadas');
         }
         return this.prisma.calificacion.create({
@@ -48,6 +48,59 @@ let CalificacionesService = class CalificacionesService {
             },
             include: this.includeRelations(),
         });
+    }
+    createReview(solicitudId, data, userId) {
+        return this.create({
+            solicitud_id: solicitudId,
+            puntuacion: data.rating,
+            comentario: data.comment,
+        }, userId, 2);
+    }
+    async providerReviews(providerId) {
+        const reviews = await this.prisma.calificacion.findMany({
+            where: { prestador_id: providerId },
+            include: {
+                cliente: { select: { nombre: true, apellido: true } },
+                servicio: { select: { titulo: true } },
+            },
+            orderBy: { fecha_creacion: 'desc' },
+        });
+        const distribution = {
+            '1': 0,
+            '2': 0,
+            '3': 0,
+            '4': 0,
+            '5': 0,
+        };
+        for (const review of reviews) {
+            distribution[String(review.puntuacion)] += 1;
+        }
+        const average = reviews.length
+            ? reviews.reduce((total, review) => total + review.puntuacion, 0) /
+                reviews.length
+            : 0;
+        return {
+            summary: {
+                average,
+                total: reviews.length,
+                satisfactionPercent: reviews.length
+                    ? Math.round((reviews.filter((review) => review.puntuacion >= 4).length /
+                        reviews.length) *
+                        100)
+                    : 0,
+                distribution,
+            },
+            data: reviews.map((review) => ({
+                id: review.id,
+                clientName: [review.cliente.nombre, review.cliente.apellido]
+                    .filter(Boolean)
+                    .join(' '),
+                service: review.servicio.titulo,
+                rating: review.puntuacion,
+                comment: review.comentario,
+                createdAt: review.fecha_creacion,
+            })),
+        };
     }
     async findAll(userId, rolId) {
         if (rolId === 1) {
@@ -104,10 +157,10 @@ let CalificacionesService = class CalificacionesService {
     }
     includeRelations() {
         return {
-            cliente: true,
-            prestador: true,
-            servicio: true,
-            solicitud: true,
+            cliente: { select: { id: true, nombre: true, apellido: true } },
+            prestador: { select: { id: true, nombre: true, apellido: true } },
+            servicio: { select: { id: true, titulo: true } },
+            solicitud: { select: { id: true, estado: true } },
         };
     }
 };

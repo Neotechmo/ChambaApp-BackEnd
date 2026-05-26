@@ -11,6 +11,19 @@ export class UpdateSolicitudDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(['pendiente', 'aceptada', 'rechazada', 'completada', 'cancelada'])
+  @IsIn([
+    'pending',
+    'accepted',
+    'on_the_way',
+    'in_progress',
+    'completed',
+    'cancelled',
+    'rejected',
+    'pendiente',
+    'aceptada',
+    'rechazada',
+    'completada',
+    'cancelada',
+  ])
   estado?: string;
 }

@@ -89,12 +89,12 @@ let AuthService = class AuthService {
         return {
             message: `Usuario ${data.nombre} ha sido registrado`,
             user: {
+                id: user.id,
                 nombre: user.nombre,
+                apellido: user.apellido,
                 correo: user.correo,
                 rol: user.rol.nombre,
-                telefono: user.telefono
-                    ? user.telefono
-                    : 'No hay un teléfono registrado para este usuario',
+                telefono: user.telefono,
             },
         };
     }
@@ -110,6 +110,9 @@ let AuthService = class AuthService {
         if (!user) {
             throw new common_1.UnauthorizedException('Credenciales incorrectas');
         }
+        if (!user.activo) {
+            throw new common_1.UnauthorizedException('La cuenta esta desactivada');
+        }
         const passwordMatch = await bcrypt.compare(data.password, user.password_hash);
         if (!passwordMatch) {
             throw new common_1.UnauthorizedException('Contraseña es incorrecta');
@@ -123,12 +126,13 @@ let AuthService = class AuthService {
         return {
             access_token: token,
             user: {
+                id: user.id,
                 nombre: user.nombre,
+                apellido: user.apellido,
                 correo: user.correo,
                 rol: user.rol.nombre,
-                telefono: user.telefono
-                    ? user.telefono
-                    : 'No hay un teléfono registrado para este usuario',
+                telefono: user.telefono,
+                avatar: user.foto_perfil,
             },
         };
     }

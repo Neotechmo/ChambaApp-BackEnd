@@ -16,6 +16,123 @@ WebSocket:
 http://localhost:3000/chat
 ```
 
+## Contrato de integracion de pantallas (mayo 2026)
+
+Las rutas siguientes implementan el contrato requerido en
+`NECESIDADES_BACK.md`. Todas usan el prefijo `/api`; salvo catalogo,
+categorias y resenas publicas, requieren `Authorization: Bearer ACCESS_TOKEN`.
+
+| Metodo | Ruta | Rol | Uso |
+| --- | --- | --- | --- |
+| `GET/PATCH` | `/users/profile` | autenticado | Perfil personal actual |
+| `PATCH` | `/providers/profile` | prestador | Perfil laboral |
+| `PATCH` | `/provider/availability` | prestador | Disponibilidad visible |
+| `GET` | `/categories` | publico | Categorias con conteo disponible |
+| `GET` | `/services` | publico | Catalogo paginado y filtrable |
+| `GET` | `/services/:id` | publico | Detalle de servicio/prestador |
+| `GET/POST/PATCH` | `/addresses`, `/addresses/:id` | autenticado | Direcciones propias |
+| `POST` | `/requests` | cliente | Crear solicitud |
+| `GET` | `/requests/mine` | cliente | Historial propio |
+| `PATCH` | `/requests/:id/cancel` | cliente | Cancelar solicitud |
+| `PATCH` | `/requests/:id/reschedule`, `/accept-date` | cliente | Negociar fecha |
+| `GET/POST/PATCH` | `/requests/:id/payment`, `/requests/:id/payment/confirm` | participante/cliente | Pago simulado |
+| `GET` | `/provider/requests` | prestador | Solicitudes por responder |
+| `PATCH` | `/provider/requests/:id/accept`, `/reject` | prestador | Responder solicitud |
+| `PATCH` | `/provider/requests/:id/propose-date` | prestador | Proponer fecha |
+| `GET/PATCH` | `/provider/jobs`, `/provider/jobs/:id/status` | prestador | Trabajos y avance |
+| `GET` | `/provider/calendar` | prestador | Agenda basada en trabajos |
+| `GET/POST/DELETE` | `/favorites`, `/favorites/:providerId` | cliente | Prestadores guardados |
+| `GET/POST/PATCH` | `/conversations`, `/conversations/:id/messages`, `/conversations/:id/read` | participante | Chat asociado a solicitud |
+| `POST` | `/requests/:id/review` | cliente | Reseña de trabajo completado |
+| `GET` | `/providers/:id/reviews` | publico | Reputacion publica |
+| `GET` | `/provider/reviews/summary` | prestador | Resumen de reputacion |
+| `GET` | `/dashboard/client`, `/dashboard/provider` | por rol | Contadores del inicio |
+| `GET` | `/provider/earnings/summary`, `/provider/transactions` | prestador | Ganancias registradas |
+
+`GET /services` admite `search`, `categoryId`, `lat`, `lng`, `radiusKm`,
+`minPrice`, `maxPrice`, `minRating`, `available`, `verified`, `sort`, `page`
+y `limit`, y responde con `{ "data": [], "meta": { ... } }`.
+
+Los estados interoperables de solicitudes son `pending`, `accepted`,
+`on_the_way`, `in_progress`, `completed`, `cancelled` y `rejected`. El
+contacto y la direccion del cliente no se devuelven al prestador hasta que
+la solicitud ha sido aceptada.
+
+Pendiente de una fase posterior: bloques avanzados de disponibilidad,
+certificaciones/verificacion administrativa, retiros y reportes descargables,
+y rutas/mapa interactivo.
+
+## Agenda y pago para el frontend
+
+`POST /api/requests` exige `fechaSolicitada` futura y
+`duracionEstimadaMin > 0`:
+
+```json
+{
+  "serviceId": 1,
+  "titulo": "Reparacion de fuga",
+  "descripcion": "Fuga debajo del lavabo",
+  "prioridad": "urgent",
+  "fechaSolicitada": "2026-05-27T16:00:00.000Z",
+  "duracionEstimadaMin": 90,
+  "direccion": "Calle Uno 10",
+  "precioEstimado": 350
+}
+```
+
+Al aceptar, el backend bloquea la agenda del prestador durante la operacion y
+rechaza cualquier cruce con trabajos `accepted`, `on_the_way` o
+`in_progress`. Error de conflicto:
+
+```json
+{
+  "message": "Ya tienes un servicio agendado en ese horario",
+  "code": "SCHEDULE_CONFLICT"
+}
+```
+
+La reprogramacion usa estos cuerpos:
+
+```json
+PATCH /api/requests/:id/reschedule
+{ "fechaSolicitada": "2026-05-28T16:00:00.000Z", "duracionEstimadaMin": 90 }
+
+PATCH /api/provider/requests/:id/propose-date
+{ "fechaPropuesta": "2026-05-29T16:00:00.000Z" }
+
+PATCH /api/requests/:id/accept-date
+```
+
+Las solicitudes normalizadas incluyen `scheduledAt`, `proposedAt`,
+`hasPendingDateProposal` y `payment`. El cliente siempre ve la direccion que
+capturo; el prestador solo la ve a partir de `accepted`.
+
+Pago UI, sin almacenar tarjeta ni CVV:
+
+```json
+POST /api/requests/:id/payment
+{ "method": "transferencia", "reference": "OP-123" }
+```
+
+```json
+PATCH /api/requests/:id/payment/confirm
+{
+  "id": 10,
+  "requestId": 24,
+  "amount": 350,
+  "method": "transferencia",
+  "reference": "OP-123",
+  "status": "paid",
+  "paidAt": "2026-05-25T18:30:00.000Z"
+}
+```
+
+El monto se calcula en backend usando `precio_final`, después
+`precio_estimado`, y por último `precio_base`; el valor `monto` de
+`POST /api/pagos` se ignora por compatibilidad. Solo una solicitud aceptada o
+en progreso/completada puede pagarse. Estados de pago canonicos: `pending`,
+`paid`, `failed`, `refunded`.
+
 ## 🔐 Autenticación
 
 Las rutas protegidas usan JWT con header:
@@ -405,7 +522,8 @@ Body:
 
 Uso UI:
 
-- Botón “Solicitar servicio” desde detalle del servicio.
+- Esta ruta queda por compatibilidad CRUD. La UI nueva debe usar
+  `POST /api/requests`, que requiere fecha y duracion.
 - El `cliente_id` sale del token.
 
 ### 👀 Listar solicitudes
@@ -454,14 +572,14 @@ Body:
 {
   "descripcion": "Actualizacion de detalles del servicio.",
   "direccion_servicio": "Calle Nueva 456, CDMX",
-  "estado": "aceptada"
+  "estado": "accepted"
 }
 ```
 
 Estados válidos:
 
 ```txt
-pendiente, aceptada, rechazada, completada, cancelada
+pending, accepted, on_the_way, in_progress, completed, cancelled, rejected
 ```
 
 Uso UI:
@@ -490,14 +608,14 @@ POST /api/pagos
 
 Token: sí.
 
-Roles: `admin`, cliente dueño de la solicitud.
+Roles: cliente dueño de la solicitud.
 
 Body:
 
 ```json
 {
-  "monto": 500,
-  "metodo": "tarjeta",
+  "monto": 1,
+  "metodo": "transferencia",
   "referencia": "REF-123456",
   "solicitud_id": 1
 }
@@ -505,8 +623,9 @@ Body:
 
 Uso UI:
 
-- Pantalla de pago de solicitud.
+- Ruta compatible: `monto` es ignorado y el backend calcula el cobro.
 - Cada solicitud solo puede tener un pago.
+- La UI nueva debe confirmar con `PATCH /api/requests/:id/payment/confirm`.
 
 ### 👀 Listar pagos
 
@@ -540,24 +659,22 @@ PATCH /api/pagos/:id
 
 Token: sí.
 
-Roles: `admin` o cliente dueño.
+Roles: `admin` o cliente dueño; el cliente solo puede editar metodo o referencia.
 
 Body:
 
 ```json
 {
-  "monto": 500,
-  "metodo": "tarjeta",
+  "metodo": "transferencia",
   "referencia": "REF-123456-ACT",
-  "estado": "pagado",
-  "fecha_pago": "2026-05-15T12:00:00.000Z"
+  "referencia": "REF-123456-ACT"
 }
 ```
 
 Estados válidos:
 
 ```txt
-pendiente, pagado, fallido, reembolsado
+pending, paid, failed, refunded
 ```
 
 ### 🔴 Eliminar pago
@@ -858,6 +975,14 @@ Namespace Socket.IO:
 http://localhost:3000/chat
 ```
 
+La conexion requiere el token JWT:
+
+```js
+io("http://localhost:3000/chat", {
+  auth: { token: accessToken }
+})
+```
+
 ### Unirse a sala
 
 Evento:
@@ -870,7 +995,7 @@ Payload:
 
 ```json
 {
-  "roomId": "solicitud-1"
+  "roomId": "request-1"
 }
 ```
 
@@ -880,7 +1005,7 @@ ACK esperado:
 {
   "event": "joinedRoom",
   "data": {
-    "roomId": "solicitud-1"
+    "roomId": "request-1"
   }
 }
 ```
@@ -897,27 +1022,17 @@ Payload actual:
 
 ```json
 {
-  "roomId": "solicitud-1",
-  "senderId": 2,
-  "receiverId": 3,
+  "roomId": "request-1",
   "message": "Hola desde cliente"
 }
 ```
 
-ACK esperado:
+El backend determina el emisor desde el JWT y valida que participe en la
+solicitud antes de unirlo a una sala `request-:id`.
 
-```json
-{
-  "roomId": "solicitud-1",
-  "senderId": 2,
-  "receiverId": 3,
-  "message": "Hola desde cliente",
-  "read": false,
-  "_id": "mongo_id",
-  "createdAt": "2026-05-17T07:57:28.416Z",
-  "updatedAt": "2026-05-17T07:57:28.416Z"
-}
-```
+Ademas de `newMessage`, el backend emite a la sala privada del usuario:
+`requestCreated`, `requestStatusChanged`, `requestRescheduled`,
+`dateProposed`, `dateAccepted` y `paymentPaid`.
 
 ### Recibir mensaje
 
@@ -1043,9 +1158,10 @@ Pantallas:
 
 ```txt
 GET /api/services
-POST /api/solicitudes
-POST /api/pagos
-GET /api/chats/room/:roomId
+POST /api/requests
+POST /api/requests/:id/payment
+PATCH /api/requests/:id/payment/confirm
+GET /api/conversations/:id/messages
 Socket joinRoom/sendMessage
 POST /api/calificaciones
 ```
@@ -1064,10 +1180,10 @@ Pantallas:
 ```txt
 1. Login del usuario
 2. Abrir conversación
-3. GET /api/chats/room/solicitud-{id}
+3. GET /api/conversations/{id}/messages
 4. Renderizar historial
-5. Conectar Socket.IO a /chat
-6. Emitir joinRoom
+5. Conectar Socket.IO a /chat enviando `auth.token`
+6. Emitir joinRoom con `roomId: "request-{id}"`
 7. Enviar con sendMessage
 8. Escuchar newMessage
 ```
@@ -1075,11 +1191,11 @@ Pantallas:
 ## 🎨 Notas para UI/UX
 
 - Mostrar estados de solicitud con colores claros:
-  - `pendiente`: amarillo
-  - `aceptada`: azul
-  - `rechazada`: rojo
-  - `completada`: verde
-  - `cancelada`: gris
+  - `pending`: amarillo
+  - `accepted`, `on_the_way`, `in_progress`: azul
+  - `rejected`: rojo
+  - `completed`: verde
+  - `cancelled`: gris
 - Mostrar `disponible` en servicios como switch.
 - Mostrar `read` en notificaciones como leído/no leído.
 - En chat, usar `_id` para evitar duplicados.
@@ -1091,11 +1207,11 @@ Pantallas:
 1. Login como prestador.
 2. Crear servicio.
 3. Login como cliente.
-4. Crear solicitud sobre ese servicio.
+4. Crear solicitud sobre ese servicio con fecha futura y duracion.
 5. Login como prestador.
 6. Aceptar solicitud.
-7. Cliente crea pago.
-8. Prestador o admin marca solicitud como completada.
+7. Cliente crea y confirma pago simulado.
+8. Prestador marca solicitud como completada.
 9. Cliente crea calificación.
 10. Cliente y prestador abren chat.
 11. Cargar historial por REST.

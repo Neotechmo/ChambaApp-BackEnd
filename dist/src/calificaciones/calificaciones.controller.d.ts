@@ -2,6 +2,7 @@ import type { AuthUser } from '../auth/types/auth-user.type';
 import { CalificacionesService } from './calificaciones.service';
 import { CreateCalificacionDto } from './dto/create-calificacion.dto';
 import { UpdateCalificacionDto } from './dto/update-calificacion.dto';
+import { CreateReviewDto } from './dto/create-review.dto';
 export declare class CalificacionesController {
     private readonly calificacionesService;
     constructor(calificacionesService: CalificacionesService);
@@ -9,46 +10,20 @@ export declare class CalificacionesController {
         cliente: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         prestador: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         servicio: {
             id: number;
             titulo: string;
-            descripcion: string;
-            precio_base: number;
-            disponible: boolean;
-            fecha_creacion: Date;
-            prestador_id: number;
         };
         solicitud: {
             id: number;
-            descripcion: string | null;
-            direccion_servicio: string | null;
             estado: string;
-            fecha_solicitud: Date;
-            cliente_id: number;
-            servicio_id: number;
         };
     } & {
         id: number;
@@ -64,46 +39,20 @@ export declare class CalificacionesController {
         cliente: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         prestador: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         servicio: {
             id: number;
             titulo: string;
-            descripcion: string;
-            precio_base: number;
-            disponible: boolean;
-            fecha_creacion: Date;
-            prestador_id: number;
         };
         solicitud: {
             id: number;
-            descripcion: string | null;
-            direccion_servicio: string | null;
             estado: string;
-            fecha_solicitud: Date;
-            cliente_id: number;
-            servicio_id: number;
         };
     } & {
         id: number;
@@ -119,46 +68,20 @@ export declare class CalificacionesController {
         cliente: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         prestador: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         servicio: {
             id: number;
             titulo: string;
-            descripcion: string;
-            precio_base: number;
-            disponible: boolean;
-            fecha_creacion: Date;
-            prestador_id: number;
         };
         solicitud: {
             id: number;
-            descripcion: string | null;
-            direccion_servicio: string | null;
             estado: string;
-            fecha_solicitud: Date;
-            cliente_id: number;
-            servicio_id: number;
         };
     } & {
         id: number;
@@ -174,46 +97,20 @@ export declare class CalificacionesController {
         cliente: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         prestador: {
             id: number;
             nombre: string;
-            correo: string;
             apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
         servicio: {
             id: number;
             titulo: string;
-            descripcion: string;
-            precio_base: number;
-            disponible: boolean;
-            fecha_creacion: Date;
-            prestador_id: number;
         };
         solicitud: {
             id: number;
-            descripcion: string | null;
-            direccion_servicio: string | null;
             estado: string;
-            fecha_solicitud: Date;
-            cliente_id: number;
-            servicio_id: number;
         };
     } & {
         id: number;
@@ -227,5 +124,78 @@ export declare class CalificacionesController {
     }>;
     remove(id: number, user: AuthUser): Promise<{
         message: string;
+    }>;
+}
+export declare class RequestReviewsController {
+    private readonly calificacionesService;
+    constructor(calificacionesService: CalificacionesService);
+    create(id: number, data: CreateReviewDto, user: AuthUser): Promise<{
+        cliente: {
+            id: number;
+            nombre: string;
+            apellido: string | null;
+        };
+        prestador: {
+            id: number;
+            nombre: string;
+            apellido: string | null;
+        };
+        servicio: {
+            id: number;
+            titulo: string;
+        };
+        solicitud: {
+            id: number;
+            estado: string;
+        };
+    } & {
+        id: number;
+        fecha_creacion: Date;
+        prestador_id: number;
+        puntuacion: number;
+        comentario: string | null;
+        solicitud_id: number;
+        cliente_id: number;
+        servicio_id: number;
+    }>;
+}
+export declare class ProviderPublicReviewsController {
+    private readonly calificacionesService;
+    constructor(calificacionesService: CalificacionesService);
+    findReviews(id: number): Promise<{
+        summary: {
+            average: number;
+            total: number;
+            satisfactionPercent: number;
+            distribution: Record<string, number>;
+        };
+        data: {
+            id: number;
+            clientName: string;
+            service: string;
+            rating: number;
+            comment: string | null;
+            createdAt: Date;
+        }[];
+    }>;
+}
+export declare class ProviderReviewSummaryController {
+    private readonly calificacionesService;
+    constructor(calificacionesService: CalificacionesService);
+    summary(user: AuthUser): Promise<{
+        summary: {
+            average: number;
+            total: number;
+            satisfactionPercent: number;
+            distribution: Record<string, number>;
+        };
+        data: {
+            id: number;
+            clientName: string;
+            service: string;
+            rating: number;
+            comment: string | null;
+            createdAt: Date;
+        }[];
     }>;
 }

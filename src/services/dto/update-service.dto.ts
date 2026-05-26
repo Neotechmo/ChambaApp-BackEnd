@@ -23,4 +23,9 @@ export class UpdateServiceDto {
   @IsOptional()
   @IsBoolean()
   disponible?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  categoryId?: number;
 }

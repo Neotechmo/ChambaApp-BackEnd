@@ -5,6 +5,10 @@ export type ChatMessageDocument = HydratedDocument<ChatMessage>;
 
 @Schema({ timestamps: true })
 export class ChatMessage {
+  createdAt!: Date;
+
+  updatedAt!: Date;
+
   @Prop({ required: true })
   roomId!: string;
 

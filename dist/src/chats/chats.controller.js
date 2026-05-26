@@ -12,13 +12,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChatsController = void 0;
+exports.ConversationsController = exports.ChatsController = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
 const chats_service_1 = require("./chats.service");
 const create_chat_message_dto_1 = require("./dto/create-chat-message.dto");
 const update_chat_message_dto_1 = require("./dto/update-chat-message.dto");
+const send_conversation_message_dto_1 = require("./dto/send-conversation-message.dto");
+const common_2 = require("@nestjs/common");
 let ChatsController = class ChatsController {
     chatsService;
     constructor(chatsService) {
@@ -97,4 +99,60 @@ exports.ChatsController = ChatsController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     __metadata("design:paramtypes", [chats_service_1.ChatsService])
 ], ChatsController);
+let ConversationsController = class ConversationsController {
+    chatsService;
+    constructor(chatsService) {
+        this.chatsService = chatsService;
+    }
+    findAll(user) {
+        return this.chatsService.findConversations(user.userId, user.rol_id);
+    }
+    findMessages(id, user) {
+        return this.chatsService.findConversationMessages(id, user.userId, user.rol_id);
+    }
+    sendMessage(id, data, user) {
+        return this.chatsService.sendConversationMessage(id, data.text, user.userId, user.rol_id);
+    }
+    read(id, user) {
+        return this.chatsService.markConversationRead(id, user.userId, user.rol_id);
+    }
+};
+exports.ConversationsController = ConversationsController;
+__decorate([
+    (0, common_1.Get)(),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], ConversationsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)(':id/messages'),
+    __param(0, (0, common_1.Param)('id', common_2.ParseIntPipe)),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", void 0)
+], ConversationsController.prototype, "findMessages", null);
+__decorate([
+    (0, common_1.Post)(':id/messages'),
+    __param(0, (0, common_1.Param)('id', common_2.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, send_conversation_message_dto_1.SendConversationMessageDto, Object]),
+    __metadata("design:returntype", void 0)
+], ConversationsController.prototype, "sendMessage", null);
+__decorate([
+    (0, common_1.Patch)(':id/read'),
+    __param(0, (0, common_1.Param)('id', common_2.ParseIntPipe)),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", void 0)
+], ConversationsController.prototype, "read", null);
+exports.ConversationsController = ConversationsController = __decorate([
+    (0, common_1.Controller)('conversations'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __metadata("design:paramtypes", [chats_service_1.ChatsService])
+], ConversationsController);
 //# sourceMappingURL=chats.controller.js.map

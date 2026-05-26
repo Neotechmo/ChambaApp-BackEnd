@@ -2,194 +2,116 @@ import type { AuthUser } from '../auth/types/auth-user.type';
 import { ServicesService } from './services.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { ListServicesQueryDto } from './dto/list-services-query.dto';
 export declare class ServicesController {
     private readonly servicesService;
     constructor(servicesService: ServicesService);
     create(data: CreateServiceDto, user: AuthUser): Promise<{
         prestador: {
+            id: number;
+            nombre: string;
+            apellido: string | null;
             rol: {
                 id: number;
                 nombre: string;
             };
-        } & {
-            id: number;
-            nombre: string;
-            correo: string;
-            apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
     } & {
         id: number;
+        disponible: boolean;
         titulo: string;
         descripcion: string;
         precio_base: number;
-        disponible: boolean;
         fecha_creacion: Date;
         prestador_id: number;
+        categoria_id: number | null;
     }>;
-    findAll(): Promise<({
-        prestador: {
-            rol: {
+    findAll(query: ListServicesQueryDto): Promise<{
+        data: {
+            id: number;
+            providerId: number;
+            nombre: string;
+            oficio: string;
+            categoria: {
                 id: number;
                 nombre: string;
-            };
-        } & {
-            id: number;
-            nombre: string;
-            correo: string;
-            apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
+            } | null;
+            precio: number;
+            unidadPrecio: string;
+            distanciaKm: number | null;
+            distancia: string | null;
+            disponibilidad: string;
+            rating: number;
+            reviews: number;
             verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
+            favorito: boolean;
+        }[];
+        meta: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
         };
-        solicitudes: {
-            id: number;
-            descripcion: string | null;
-            direccion_servicio: string | null;
-            estado: string;
-            fecha_solicitud: Date;
-            cliente_id: number;
-            servicio_id: number;
-        }[];
-        calificaciones: {
-            id: number;
-            fecha_creacion: Date;
-            prestador_id: number;
-            puntuacion: number;
-            comentario: string | null;
-            solicitud_id: number;
-            cliente_id: number;
-            servicio_id: number;
-        }[];
-    } & {
-        id: number;
-        titulo: string;
-        descripcion: string;
-        precio_base: number;
-        disponible: boolean;
-        fecha_creacion: Date;
-        prestador_id: number;
-    })[]>;
+    }>;
     findOne(id: number): Promise<{
-        prestador: {
-            rol: {
-                id: number;
-                nombre: string;
-            };
-        } & {
+        descripcion: string;
+        experienciaAnios: number | null;
+        zonaCobertura: string | null;
+        etiquetas: string[];
+        coordinates: {
+            lat: number | null;
+            lng: number | null;
+        };
+        id: number;
+        providerId: number;
+        nombre: string;
+        oficio: string;
+        categoria: {
             id: number;
             nombre: string;
-            correo: string;
-            apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
-        };
-        solicitudes: ({
-            cliente: {
-                id: number;
-                nombre: string;
-                correo: string;
-                apellido: string | null;
-                password_hash: string;
-                telefono: string | null;
-                foto_perfil: string | null;
-                activo: boolean;
-                verificado: boolean;
-                fecha_registro: Date;
-                rol_id: number;
-            };
-            pago: {
-                id: number;
-                fecha_creacion: Date;
-                solicitud_id: number;
-                estado: string;
-                monto: number;
-                metodo: string | null;
-                referencia: string | null;
-                fecha_pago: Date | null;
-            } | null;
-            calificacion: {
-                id: number;
-                fecha_creacion: Date;
-                prestador_id: number;
-                puntuacion: number;
-                comentario: string | null;
-                solicitud_id: number;
-                cliente_id: number;
-                servicio_id: number;
-            } | null;
-        } & {
-            id: number;
-            descripcion: string | null;
-            direccion_servicio: string | null;
-            estado: string;
-            fecha_solicitud: Date;
-            cliente_id: number;
-            servicio_id: number;
-        })[];
-        calificaciones: {
-            id: number;
-            fecha_creacion: Date;
-            prestador_id: number;
-            puntuacion: number;
-            comentario: string | null;
-            solicitud_id: number;
-            cliente_id: number;
-            servicio_id: number;
-        }[];
-    } & {
-        id: number;
-        titulo: string;
-        descripcion: string;
-        precio_base: number;
-        disponible: boolean;
-        fecha_creacion: Date;
-        prestador_id: number;
+        } | null;
+        precio: number;
+        unidadPrecio: string;
+        distanciaKm: number | null;
+        distancia: string | null;
+        disponibilidad: string;
+        rating: number;
+        reviews: number;
+        verificado: boolean;
+        favorito: boolean;
     }>;
     update(id: number, data: UpdateServiceDto, user: AuthUser): Promise<{
         prestador: {
+            id: number;
+            nombre: string;
+            apellido: string | null;
             rol: {
                 id: number;
                 nombre: string;
             };
-        } & {
-            id: number;
-            nombre: string;
-            correo: string;
-            apellido: string | null;
-            password_hash: string;
-            telefono: string | null;
-            foto_perfil: string | null;
-            activo: boolean;
-            verificado: boolean;
-            fecha_registro: Date;
-            rol_id: number;
         };
     } & {
         id: number;
+        disponible: boolean;
         titulo: string;
         descripcion: string;
         precio_base: number;
-        disponible: boolean;
         fecha_creacion: Date;
         prestador_id: number;
+        categoria_id: number | null;
     }>;
     remove(id: number, user: AuthUser): Promise<{
         message: string;
+    }>;
+}
+export declare class CategoriesController {
+    private readonly servicesService;
+    constructor(servicesService: ServicesService);
+    findAll(): Promise<{
+        data: {
+            id: number;
+            nombre: string;
+            providersAvailable: number;
+        }[];
     }>;
 }

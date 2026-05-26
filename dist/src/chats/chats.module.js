@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatsModule = void 0;
 const common_1 = require("@nestjs/common");
+const jwt_1 = require("@nestjs/jwt");
 const mongoose_1 = require("@nestjs/mongoose");
 const chats_controller_1 = require("./chats.controller");
 const chats_gateway_1 = require("./chats.gateway");
@@ -19,13 +20,14 @@ exports.ChatsModule = ChatsModule;
 exports.ChatsModule = ChatsModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            jwt_1.JwtModule.register({ secret: process.env.JWT_SECRET }),
             mongoose_1.MongooseModule.forFeature([
                 { name: chat_message_schema_1.ChatMessage.name, schema: chat_message_schema_1.ChatMessageSchema },
             ]),
         ],
-        controllers: [chats_controller_1.ChatsController],
+        controllers: [chats_controller_1.ChatsController, chats_controller_1.ConversationsController],
         providers: [chats_service_1.ChatsService, chats_gateway_1.ChatsGateway],
-        exports: [chats_service_1.ChatsService],
+        exports: [chats_service_1.ChatsService, chats_gateway_1.ChatsGateway],
     })
 ], ChatsModule);
 //# sourceMappingURL=chats.module.js.map
