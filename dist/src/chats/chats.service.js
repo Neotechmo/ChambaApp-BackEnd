@@ -25,11 +25,19 @@ let ChatsService = class ChatsService {
         this.chatMessageModel = chatMessageModel;
         this.prisma = prisma;
     }
-    async create(data, userId) {
+    async create(data, userId, rolId) {
+        const requestId = this.requestIdFromRoom(data.roomId);
+        if (requestId === null) {
+            throw new common_1.ForbiddenException('Sala de chat no autorizada');
+        }
+        const request = await this.authorizeConversation(requestId, userId, rolId);
+        const receiverId = request.cliente_id === userId
+            ? request.servicio.prestador_id
+            : request.cliente_id;
         return this.chatMessageModel.create({
             roomId: data.roomId,
             senderId: userId,
-            receiverId: data.receiverId,
+            receiverId,
             message: data.message,
         });
     }
@@ -125,13 +133,12 @@ let ChatsService = class ChatsService {
         return this.chatMessageModel.find(filter).sort({ createdAt: -1 }).exec();
     }
     async findByRoom(roomId, userId, rolId) {
-        const filter = rolId === 1
-            ? { roomId }
-            : {
-                roomId,
-                $or: [{ senderId: userId }, { receiverId: userId }],
-            };
-        return this.chatMessageModel.find(filter).sort({ createdAt: 1 }).exec();
+        const requestId = this.requestIdFromRoom(roomId);
+        if (requestId === null) {
+            throw new common_1.ForbiddenException('Sala de chat no autorizada');
+        }
+        await this.authorizeConversation(requestId, userId, rolId);
+        return this.chatMessageModel.find({ roomId }).sort({ createdAt: 1 }).exec();
     }
     async findOne(id, userId, rolId) {
         const message = await this.chatMessageModel.findById(id).exec();
@@ -185,6 +192,10 @@ let ChatsService = class ChatsService {
     }
     roomId(id) {
         return `request-${id}`;
+    }
+    requestIdFromRoom(roomId) {
+        const match = /^request-(\d+)$/.exec(roomId);
+        return match ? Number(match[1]) : null;
     }
     mapMessage(conversationId, message) {
         return {

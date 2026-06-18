@@ -27,7 +27,7 @@ let ChatsController = class ChatsController {
         this.chatsService = chatsService;
     }
     create(data, user) {
-        return this.chatsService.create(data, user.userId);
+        return this.chatsService.create(data, user.userId, user.rol_id);
     }
     findAll(user) {
         return this.chatsService.findAll(user.userId, user.rol_id);

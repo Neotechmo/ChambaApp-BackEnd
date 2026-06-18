@@ -7,7 +7,7 @@ export declare class ChatsService {
     private readonly chatMessageModel;
     private readonly prisma;
     constructor(chatMessageModel: Model<ChatMessageDocument>, prisma: PrismaService);
-    create(data: CreateChatMessageDto, userId: number): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, ChatMessage, {}, import("mongoose").DefaultSchemaOptions> & ChatMessage & {
+    create(data: CreateChatMessageDto, userId: number, rolId: number): Promise<import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, ChatMessage, {}, import("mongoose").DefaultSchemaOptions> & ChatMessage & {
         _id: import("mongoose").Types.ObjectId;
     } & {
         __v: number;
@@ -151,5 +151,6 @@ export declare class ChatsService {
         direccion_id: number | null;
     }>;
     private roomId;
+    requestIdFromRoom(roomId: string): number | null;
     private mapMessage;
 }

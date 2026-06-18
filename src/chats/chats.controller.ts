@@ -24,7 +24,7 @@ export class ChatsController {
 
   @Post()
   create(@Body() data: CreateChatMessageDto, @CurrentUser() user: AuthUser) {
-    return this.chatsService.create(data, user.userId);
+    return this.chatsService.create(data, user.userId, user.rol_id);
   }
 
   @Get()

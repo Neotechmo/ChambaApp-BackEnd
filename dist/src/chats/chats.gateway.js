@@ -43,10 +43,11 @@ let ChatsGateway = class ChatsGateway {
     }
     async joinRoom(client, payload) {
         const user = this.currentUser(client);
-        const requestId = this.requestId(payload.roomId);
-        if (requestId !== null) {
-            await this.chatsService.authorizeConversation(requestId, user.userId, user.rol_id);
+        const requestId = this.chatsService.requestIdFromRoom(payload.roomId);
+        if (requestId === null) {
+            throw new websockets_2.WsException('Sala de chat no autorizada');
         }
+        await this.chatsService.authorizeConversation(requestId, user.userId, user.rol_id);
         await client.join(payload.roomId);
         return {
             event: 'joinedRoom',
@@ -55,10 +56,11 @@ let ChatsGateway = class ChatsGateway {
     }
     async sendMessage(client, payload) {
         const user = this.currentUser(client);
-        const requestId = this.requestId(payload.roomId);
-        const message = requestId === null
-            ? await this.chatsService.create(payload, user.userId)
-            : await this.chatsService.sendConversationMessage(requestId, payload.message, user.userId, user.rol_id);
+        const requestId = this.chatsService.requestIdFromRoom(payload.roomId);
+        if (requestId === null) {
+            throw new websockets_2.WsException('Sala de chat no autorizada');
+        }
+        const message = await this.chatsService.sendConversationMessage(requestId, payload.message, user.userId, user.rol_id);
         this.server.to(payload.roomId).emit('newMessage', message);
         return message;
     }
@@ -83,10 +85,6 @@ let ChatsGateway = class ChatsGateway {
             throw new websockets_2.WsException('Token requerido');
         }
         return token;
-    }
-    requestId(roomId) {
-        const match = /^request-(\d+)$/.exec(roomId);
-        return match ? Number(match[1]) : null;
     }
     userRoom(userId) {
         return `user-${userId}`;

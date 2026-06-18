@@ -21,11 +21,22 @@ export class ChatsService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async create(data: CreateChatMessageDto, userId: number) {
+  async create(data: CreateChatMessageDto, userId: number, rolId: number) {
+    const requestId = this.requestIdFromRoom(data.roomId);
+    if (requestId === null) {
+      throw new ForbiddenException('Sala de chat no autorizada');
+    }
+
+    const request = await this.authorizeConversation(requestId, userId, rolId);
+    const receiverId =
+      request.cliente_id === userId
+        ? request.servicio.prestador_id
+        : request.cliente_id;
+
     return this.chatMessageModel.create({
       roomId: data.roomId,
       senderId: userId,
-      receiverId: data.receiverId,
+      receiverId,
       message: data.message,
     });
   }
@@ -144,15 +155,14 @@ export class ChatsService {
   }
 
   async findByRoom(roomId: string, userId: number, rolId: number) {
-    const filter =
-      rolId === 1
-        ? { roomId }
-        : {
-            roomId,
-            $or: [{ senderId: userId }, { receiverId: userId }],
-          };
+    const requestId = this.requestIdFromRoom(roomId);
+    if (requestId === null) {
+      throw new ForbiddenException('Sala de chat no autorizada');
+    }
 
-    return this.chatMessageModel.find(filter).sort({ createdAt: 1 }).exec();
+    await this.authorizeConversation(requestId, userId, rolId);
+
+    return this.chatMessageModel.find({ roomId }).sort({ createdAt: 1 }).exec();
   }
 
   async findOne(id: string, userId: number, rolId: number) {
@@ -230,6 +240,11 @@ export class ChatsService {
 
   private roomId(id: number) {
     return `request-${id}`;
+  }
+
+  requestIdFromRoom(roomId: string) {
+    const match = /^request-(\d+)$/.exec(roomId);
+    return match ? Number(match[1]) : null;
   }
 
   private mapMessage(conversationId: number, message: ChatMessageDocument) {

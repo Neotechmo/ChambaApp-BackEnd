@@ -20,21 +20,7 @@ export declare class ChatsGateway implements OnGatewayConnection {
         event: string;
         data: JoinRoomPayload;
     }>;
-    sendMessage(client: UserSocket, payload: CreateChatMessageDto): Promise<(import("mongoose").Document<unknown, {}, import("mongoose").Document<unknown, {}, import("./schemas/chat-message.schema").ChatMessage, {}, import("mongoose").DefaultSchemaOptions> & import("./schemas/chat-message.schema").ChatMessage & {
-        _id: import("mongoose").Types.ObjectId;
-    } & {
-        __v: number;
-    } & {
-        id: string;
-    }, {}, import("mongoose").DefaultSchemaOptions> & import("mongoose").Document<unknown, {}, import("./schemas/chat-message.schema").ChatMessage, {}, import("mongoose").DefaultSchemaOptions> & import("./schemas/chat-message.schema").ChatMessage & {
-        _id: import("mongoose").Types.ObjectId;
-    } & {
-        __v: number;
-    } & {
-        id: string;
-    } & Required<{
-        _id: import("mongoose").Types.ObjectId;
-    }>) | {
+    sendMessage(client: UserSocket, payload: CreateChatMessageDto): Promise<{
         id: string;
         conversationId: number;
         senderId: number;
@@ -45,7 +31,6 @@ export declare class ChatsGateway implements OnGatewayConnection {
     emitUserEvent(userId: number, event: string, data: unknown): void;
     private currentUser;
     private socketToken;
-    private requestId;
     private userRoom;
 }
 export {};

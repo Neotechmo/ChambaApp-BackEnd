@@ -64,14 +64,15 @@ export class ChatsGateway implements OnGatewayConnection {
     @MessageBody() payload: JoinRoomPayload,
   ) {
     const user = this.currentUser(client);
-    const requestId = this.requestId(payload.roomId);
-    if (requestId !== null) {
-      await this.chatsService.authorizeConversation(
-        requestId,
-        user.userId,
-        user.rol_id,
-      );
+    const requestId = this.chatsService.requestIdFromRoom(payload.roomId);
+    if (requestId === null) {
+      throw new WsException('Sala de chat no autorizada');
     }
+    await this.chatsService.authorizeConversation(
+      requestId,
+      user.userId,
+      user.rol_id,
+    );
     await client.join(payload.roomId);
     return {
       event: 'joinedRoom',
@@ -85,16 +86,16 @@ export class ChatsGateway implements OnGatewayConnection {
     @MessageBody() payload: CreateChatMessageDto,
   ) {
     const user = this.currentUser(client);
-    const requestId = this.requestId(payload.roomId);
-    const message =
-      requestId === null
-        ? await this.chatsService.create(payload, user.userId)
-        : await this.chatsService.sendConversationMessage(
-            requestId,
-            payload.message,
-            user.userId,
-            user.rol_id,
-          );
+    const requestId = this.chatsService.requestIdFromRoom(payload.roomId);
+    if (requestId === null) {
+      throw new WsException('Sala de chat no autorizada');
+    }
+    const message = await this.chatsService.sendConversationMessage(
+      requestId,
+      payload.message,
+      user.userId,
+      user.rol_id,
+    );
     this.server.to(payload.roomId).emit('newMessage', message);
     return message;
   }
@@ -123,11 +124,6 @@ export class ChatsGateway implements OnGatewayConnection {
       throw new WsException('Token requerido');
     }
     return token;
-  }
-
-  private requestId(roomId: string) {
-    const match = /^request-(\d+)$/.exec(roomId);
-    return match ? Number(match[1]) : null;
   }
 
   private userRoom(userId: number) {
