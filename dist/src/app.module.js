@@ -24,7 +24,12 @@ const users_module_1 = require("./users/users.module");
 const favorites_module_1 = require("./favorites/favorites.module");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
 const addresses_module_1 = require("./addresses/addresses.module");
+const logger_module_1 = require("./logger/logger.module");
+const correlation_id_middleware_1 = require("./common/middleware/correlation-id.middleware");
 let AppModule = class AppModule {
+    configure(consumer) {
+        consumer.apply(correlation_id_middleware_1.CorrelationIdMiddleware).forRoutes('*');
+    }
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
@@ -33,6 +38,7 @@ exports.AppModule = AppModule = __decorate([
             mongoose_1.MongooseModule.forRoot(process.env.MONGODB_URI ??
                 process.env.MONGO_URI ??
                 'mongodb://127.0.0.1:27017/chambaapp'),
+            logger_module_1.AppLoggerModule,
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             prisma_module_1.PrismaModule,

@@ -41,26 +41,34 @@ var __importStar = (this && this.__importStar) || (function () {
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
+const nest_winston_1 = require("nest-winston");
 const prisma_service_1 = require("../prisma/prisma.service");
 const bcrypt = __importStar(require("bcrypt"));
 let AuthService = class AuthService {
     prisma;
     jwtService;
-    constructor(prisma, jwtService) {
+    logger;
+    constructor(prisma, jwtService, logger) {
         this.prisma = prisma;
         this.jwtService = jwtService;
+        this.logger = logger;
     }
     async register(data) {
+        this.logger.log({ message: 'Intento de registro', correo: data.correo }, 'AuthService');
         const userExists = await this.prisma.usuario.findUnique({
             where: {
                 correo: data.correo,
             },
         });
         if (userExists) {
+            this.logger.warn({ message: 'Registro fallido: correo duplicado', correo: data.correo }, 'AuthService');
             throw new common_1.ConflictException('El correo ya existe');
         }
         const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -86,6 +94,7 @@ let AuthService = class AuthService {
                 rol: true,
             },
         });
+        this.logger.log({ message: 'Usuario registrado', userId: user.id, rol: user.rol.nombre }, 'AuthService');
         return {
             message: `Usuario ${data.nombre} ha sido registrado`,
             user: {
@@ -108,15 +117,19 @@ let AuthService = class AuthService {
             },
         });
         if (!user) {
+            this.logger.warn({ message: 'Login fallido: usuario no encontrado', correo: data.correo }, 'AuthService');
             throw new common_1.UnauthorizedException('Credenciales incorrectas');
         }
         if (!user.activo) {
+            this.logger.warn({ message: 'Login fallido: cuenta desactivada', userId: user.id }, 'AuthService');
             throw new common_1.UnauthorizedException('La cuenta esta desactivada');
         }
         const passwordMatch = await bcrypt.compare(data.password, user.password_hash);
         if (!passwordMatch) {
+            this.logger.warn({ message: 'Login fallido: contraseña incorrecta', userId: user.id }, 'AuthService');
             throw new common_1.UnauthorizedException('Contraseña es incorrecta');
         }
+        this.logger.log({ message: 'Login exitoso', userId: user.id, rol: user.rol.nombre }, 'AuthService');
         const payload = {
             sub: user.id,
             correo: user.correo,
@@ -140,7 +153,8 @@ let AuthService = class AuthService {
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
+    __param(2, (0, common_1.Inject)(nest_winston_1.WINSTON_MODULE_NEST_PROVIDER)),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        jwt_1.JwtService])
+        jwt_1.JwtService, Object])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

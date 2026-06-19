@@ -43,4 +43,5 @@ exports.Log = Log = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], Log);
 exports.LogSchema = mongoose_1.SchemaFactory.createForClass(Log);
+exports.LogSchema.index({ createdAt: 1 }, { expireAfterSeconds: 7_776_000 });
 //# sourceMappingURL=log.schema.js.map

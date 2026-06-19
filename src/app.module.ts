@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -15,6 +15,8 @@ import { UsersModule } from './users/users.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AddressesModule } from './addresses/addresses.module';
+import { AppLoggerModule } from './logger/logger.module';
+import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 
 @Module({
   imports: [
@@ -23,6 +25,7 @@ import { AddressesModule } from './addresses/addresses.module';
         process.env.MONGO_URI ??
         'mongodb://127.0.0.1:27017/chambaapp',
     ),
+    AppLoggerModule,   // ← Winston structured logging (global)
     AuthModule,
     UsersModule,
     PrismaModule,
@@ -40,4 +43,9 @@ import { AddressesModule } from './addresses/addresses.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Correlation ID en TODAS las rutas
+    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
+  }
+}
