@@ -16,10 +16,15 @@
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
-    "strictNullChecks": true,
+
+    // ── Calidad TypeScript (checklist 2.2) ──────────────────────────────
+    "strict": true,                        // habilita todo el grupo strict
+    "noImplicitAny": true,                 // sin tipos implícitos any
+    "strictNullChecks": true,              // manejo explícito de null/undefined
+    "noUnusedLocals": true,                // variables locales sin uso → error
+    "noUnusedParameters": true,            // parámetros sin uso → error
+    "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": true
   }
 }
